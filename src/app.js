@@ -27,7 +27,27 @@ router.route('/compare')
 
     const yesterdayprice = fetch(YESTERDAY_PRICE)
       .then(res => res.json())
-      .then(rate => rate.bpi);
+      .then(rate => Object.values(rate.bpi)[0])
+      .then(result => {
+        return result;
+      })
+      .catch(err => {
+        res.status(STATUS_ERROR);
+        res.send({ error: err });
+      });
+
+      Promise.all([currentprice, yesterdayprice])
+        .then(rates => {
+          const current = rates[0];
+          const prev = rates[1];
+          const difference = current - prev;
+          res.status(STATUS_SUCCESS);
+          res.send({ difference });
+        })
+        .catch(err => {
+          res.status(STATUS_ERROR);
+          res.send({ error: err });
+        });
   });
 
 app.use('/api', router);
